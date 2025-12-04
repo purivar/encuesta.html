@@ -79,13 +79,10 @@
                 </div>
             );
 
-            const NumericScale = ({ questionId, question, labelLeft, labelRight }) => (
+            const NumericScale = ({ questionId, question, note }) => (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="font-medium mb-3 text-gray-800">{question}</p>
-                    <div className="flex justify-between text-sm text-gray-500 mb-2">
-                        <span>{labelLeft}</span>
-                        <span>{labelRight}</span>
-                    </div>
+                    <p className="font-medium text-gray-800 mb-1">{question}</p>
+                    <p className="text-xs text-gray-500 mb-3">{note}</p>
                     <div className="flex justify-between gap-1 flex-wrap">
                         {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
                             <button
@@ -103,7 +100,6 @@
                     </div>
                 </div>
             );
-
             const MultipleChoice = ({ questionId, question, options }) => (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <p className="font-medium mb-3 text-gray-800">{question}</p>
@@ -246,7 +242,7 @@
                         <h2 className="text-xl font-bold text-orange-600 mb-4">INSTRUCCIONES PARA CUMPLIMENTAR EL CUESTIONARIO</h2>
                         <div className="space-y-3 text-gray-700">
                             <p><strong>1. Confidencialidad y anonimato:</strong> Sus respuestas serán tratadas de forma totalmente anónima y confidencial.</p>
-                            <p><strong>2. Tiempo estimado:</strong> La cumplimentación del cuestionario le llevará aproximadamente 15-20 minutos.</p>
+                            <p><strong>2. Tiempo estimado:</strong> La cumplimentación del cuestionario le llevará aproximadamente 5-10 minutos.</p>
                             <p><strong>3. Forma de respuesta:</strong> Por favor, lea atentamente cada pregunta y seleccione la opción que mejor refleje su opinión o situación.</p>
                             <p><strong>4. Participación voluntaria:</strong> Su participación es totalmente voluntaria. Puede abandonar el cuestionario en cualquier momento.</p>
                         </div>
@@ -316,7 +312,7 @@
                         <SectionTitle color="green">Cohesión y trabajo en equipo</SectionTitle>
                         <LikertScale questionId="q6" question="6. Siento que formo parte de un equipo de trabajo cohesionado, tanto en los días presenciales como en los de teletrabajo." />
                         <MultipleChoice questionId="q7" question="7. ¿Con qué frecuencia participa en reuniones de equipo (presenciales o virtuales)?" options={['Nunca', 'Menos de una vez al mes', 'Una vez al mes', 'Semanalmente', 'Varias veces a la semana']} />
-                        <NumericScale questionId="q8" question="8. En una escala del 0 al 10, ¿cómo valoraría la colaboración con sus compañeros/as en la modalidad semi-presencial?" labelLeft="Nada eficiente" labelRight="Muy eficiente" />
+                        <NumericScale questionId="q8" question="8. En una escala del 0 al 10, ¿cómo valoraría la colaboración con sus compañeros/as en la modalidad semi-presencial?" note="Siendo 0 nada eficiente y 10 muy eficiente." />
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setCurrentSection('comunicacion')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
@@ -360,7 +356,7 @@
                         <SectionTitle>Recursos y condiciones de trabajo</SectionTitle>
                         <MultiSelect questionId="q14" question="14. ¿Qué recursos tecnológicos utiliza habitualmente para el teletrabajo?" options={['Ordenador proporcionado por Servicio Andaluz de Salud', 'Ordenador personal', 'Teléfono móvil corporativo', 'Software de videoconferencia (Teams, Zoom, etc.)', 'Acceso VPN a la red del centro', 'Plataformas de gestión de tareas', 'Otro']} />
                         <LikertScale questionId="q15" question="15. Dispongo de los recursos tecnológicos necesarios para desarrollar mi trabajo en teletrabajo." />
-                        <NumericScale questionId="q16" question="16. En una escala del 0 al 10, ¿cómo valoraría la adecuación de su espacio de trabajo en casa?" labelLeft="Nada adecuado" labelRight="Muy adecuado" />
+                        <NumericScale questionId="q16" question="16. En una escala del 0 al 10, ¿cómo valoraría la adecuación de su espacio de trabajo en casa?" note="Siendo 0 nada adecuado y 10 muy adecuado." />
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setCurrentSection('liderazgo')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
@@ -493,3 +489,4 @@
     </script>
 </body>
 </html>
+
