@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta Clima Laboral - Entornos Semi-presenciales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        input[type="radio"]:checked { accent-color: #f97316; }
+        input[type="checkbox"]:checked { accent-color: #f97316; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState } = React;
+
+        const EncuestaClimaLaboral = () => {
+            const [currentSection, setCurrentSection] = useState('intro');
+            const [responses, setResponses] = useState({});
+            const [filterFailed, setFilterFailed] = useState(false);
+
+            const handleResponse = (questionId, value) => {
+                setResponses(prev => ({ ...prev, [questionId]: value }));
+            };
+
+            const handleMultiResponse = (questionId, value) => {
+                setResponses(prev => {
+                    const current = prev[questionId] || [];
+                    if (current.includes(value)) {
+                        return { ...prev, [questionId]: current.filter(v => v !== value) };
+                    } else {
+                        return { ...prev, [questionId]: [...current, value] };
+                    }
+                });
+            };
+
+            const LikertScale = ({ questionId, question }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="space-y-2">
+                        {['Totalmente en desacuerdo', 'En desacuerdo', 'Ni de acuerdo ni en desacuerdo', 'De acuerdo', 'Totalmente de acuerdo'].map((option, idx) => (
+                            <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                                <input
+                                    type="radio"
+                                    name={questionId}
+                                    checked={responses[questionId] === option}
+                                    onChange={() => handleResponse(questionId, option)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-gray-700">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const SatisfactionScale = ({ questionId, question }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="space-y-2">
+                        {['Muy insatisfecho/a', 'Insatisfecho/a', 'Ni satisfecho/a ni insatisfecho/a', 'Satisfecho/a', 'Muy satisfecho/a'].map((option, idx) => (
+                            <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                                <input
+                                    type="radio"
+                                    name={questionId}
+                                    checked={responses[questionId] === option}
+                                    onChange={() => handleResponse(questionId, option)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-gray-700">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const NumericScale = ({ questionId, question, labelLeft, labelRight }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                        <span>{labelLeft}</span>
+                        <span>{labelRight}</span>
+                    </div>
+                    <div className="flex justify-between gap-1 flex-wrap">
+                        {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <button
+                                key={num}
+                                onClick={() => handleResponse(questionId, num)}
+                                className={`w-9 h-9 rounded-full font-medium transition-all text-sm ${
+                                    responses[questionId] === num 
+                                        ? 'bg-orange-500 text-white' 
+                                        : 'bg-white border border-gray-300 hover:border-orange-500'
+                                }`}
+                            >
+                                {num}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const MultipleChoice = ({ questionId, question, options }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="space-y-2">
+                        {options.map((option, idx) => (
+                            <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                                <input
+                                    type="radio"
+                                    name={questionId}
+                                    checked={responses[questionId] === option}
+                                    onChange={() => handleResponse(questionId, option)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-gray-700">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const MultiSelect = ({ questionId, question, options }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <p className="text-sm text-gray-500 mb-2">(Puede seleccionar varias opciones)</p>
+                    <div className="space-y-2">
+                        {options.map((option, idx) => (
+                            <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                                <input
+                                    type="checkbox"
+                                    checked={(responses[questionId] || []).includes(option)}
+                                    onChange={() => handleMultiResponse(questionId, option)}
+                                    className="w-4 h-4 rounded"
+                                />
+                                <span className="text-gray-700">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const YesNo = ({ questionId, question }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="space-y-2">
+                        {['Sí', 'No'].map((option, idx) => (
+                            <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                                <input
+                                    type="radio"
+                                    name={questionId}
+                                    checked={responses[questionId] === option}
+                                    onChange={() => handleResponse(questionId, option)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-gray-700">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const FilterQuestion = ({ questionId, question }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="space-y-2">
+                        <label className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                            <input
+                                type="radio"
+                                name={questionId}
+                                checked={responses[questionId] === 'Sí'}
+                                onChange={() => handleResponse(questionId, 'Sí')}
+                                className="w-4 h-4"
+                            />
+                            <span className="text-gray-700">Sí</span>
+                        </label>
+                        <label className="flex items-start gap-3 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                            <input
+                                type="radio"
+                                name={questionId}
+                                checked={responses[questionId] === 'No'}
+                                onChange={() => handleResponse(questionId, 'No')}
+                                className="w-4 h-4 mt-1"
+                            />
+                            <div>
+                                <span className="text-gray-700">No</span>
+                                <span className="text-red-600 text-sm ml-2">→ Si su respuesta es No, el cuestionario ha finalizado. Gracias por su tiempo.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            const OpenQuestion = ({ questionId, question }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <textarea
+                        value={responses[questionId] || ''}
+                        onChange={(e) => handleResponse(questionId, e.target.value)}
+                        placeholder="Escriba su respuesta aquí..."
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
+                        rows={4}
+                    />
+                </div>
+            );
+
+            const OpenShort = ({ questionId, question, suffix = "" }) => (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium mb-3 text-gray-800">{question}</p>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="number"
+                            value={responses[questionId] || ''}
+                            onChange={(e) => handleResponse(questionId, e.target.value)}
+                            className="w-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
+                            placeholder="0"
+                        />
+                        {suffix && <span className="text-gray-600">{suffix}</span>}
+                    </div>
+                </div>
+            );
+
+            const SectionTitle = ({ children, color = "orange" }) => (
+                <h3 className={`text-lg font-bold mb-4 pb-2 border-b-2 ${color === 'orange' ? 'text-orange-600 border-orange-600' : 'text-green-600 border-green-600'}`}>
+                    {children}
+                </h3>
+            );
+
+            const renderIntro = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold text-orange-600 mb-2">Diseño de cuestionario</h1>
+                        <p className="text-gray-600">Métodos de investigación</p>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <h2 className="text-xl font-bold text-orange-600 mb-4">INTRODUCCIÓN</h2>
+                        <p className="text-gray-700 leading-relaxed mb-6">
+                            El presente cuestionario está dirigido a <strong>todo el personal administrativo de los Centros Sanitarios Públicos de Andalucía</strong>, con el fin de conocer su percepción sobre las condiciones laborales en la modalidad híbrida de trabajo que combina la presencialidad con el teletrabajo. Los resultados obtenidos permitirán identificar áreas de mejora y desarrollar acciones orientadas a optimizar el clima laboral en estos entornos.
+                        </p>
+
+                        <h2 className="text-xl font-bold text-orange-600 mb-4">INSTRUCCIONES PARA CUMPLIMENTAR EL CUESTIONARIO</h2>
+                        <div className="space-y-3 text-gray-700">
+                            <p><strong>1. Confidencialidad y anonimato:</strong> Sus respuestas serán tratadas de forma totalmente anónima y confidencial.</p>
+                            <p><strong>2. Tiempo estimado:</strong> La cumplimentación del cuestionario le llevará aproximadamente 15-20 minutos.</p>
+                            <p><strong>3. Forma de respuesta:</strong> Por favor, lea atentamente cada pregunta y seleccione la opción que mejor refleje su opinión o situación.</p>
+                            <p><strong>4. Participación voluntaria:</strong> Su participación es totalmente voluntaria. Puede abandonar el cuestionario en cualquier momento.</p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setCurrentSection('filter')}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors text-lg"
+                    >
+                        Comenzar cuestionario →
+                    </button>
+                </div>
+            );
+
+            const renderFilter = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <h2 className="text-xl font-bold text-orange-600 mb-6">CUESTIONARIO</h2>
+                        
+                        <FilterQuestion 
+                            questionId="q1" 
+                            question="1. ¿Trabaja actualmente como personal administrativo en un Centro Sanitario Público de Andalucía?"
+                        />
+                        
+                        <FilterQuestion 
+                            questionId="q2" 
+                            question="2. ¿Trabaja actualmente bajo una modalidad semi-presencial o híbrida?"
+                        />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('intro')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button
+                            onClick={() => {
+                                if (responses.q1 === 'No' || responses.q2 === 'No') {
+                                    setFilterFailed(true);
+                                    setCurrentSection('end');
+                                } else if (responses.q1 === 'Sí' && responses.q2 === 'Sí') {
+                                    setCurrentSection('comunicacion');
+                                }
+                            }}
+                            disabled={!responses.q1 || !responses.q2}
+                            className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-lg transition-colors"
+                        >Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderComunicacion = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle>Comunicación organizacional</SectionTitle>
+                        <LikertScale questionId="q3" question="3. La comunicación entre el equipo de trabajo es fluida independientemente de la modalidad (presencial o remota)." />
+                        <MultipleChoice questionId="q4" question="4. ¿Cuál es el principal canal de comunicación que utiliza con su equipo de trabajo?" options={['Correo electrónico corporativo', 'Plataforma de mensajería instantánea (Teams, WhatsApp, etc.)', 'Llamadas telefónicas', 'Videoconferencias', 'Comunicación presencial']} />
+                        <LikertScale questionId="q5" question="5. Recibo información clara y oportuna sobre los cambios que afectan a mi trabajo." />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('filter')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('cohesion')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderCohesion = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle color="green">Cohesión y trabajo en equipo</SectionTitle>
+                        <LikertScale questionId="q6" question="6. Siento que formo parte de un equipo de trabajo cohesionado, tanto en los días presenciales como en los de teletrabajo." />
+                        <MultipleChoice questionId="q7" question="7. ¿Con qué frecuencia participa en reuniones de equipo (presenciales o virtuales)?" options={['Nunca', 'Menos de una vez al mes', 'Una vez al mes', 'Semanalmente', 'Varias veces a la semana']} />
+                        <NumericScale questionId="q8" question="8. En una escala del 0 al 10, ¿cómo valoraría la colaboración con sus compañeros/as en la modalidad semi-presencial?" labelLeft="Nada eficiente" labelRight="Muy eficiente" />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('comunicacion')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('satisfaccion')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderSatisfaccion = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle>Satisfacción laboral</SectionTitle>
+                        <SatisfactionScale questionId="q9" question="9. ¿Cuál es su grado de satisfacción general con la modalidad de trabajo semi-presencial?" />
+                        <MultipleChoice questionId="q10" question="10. ¿Qué distribución de días considera más adecuada para su trabajo?" options={['100% presencial', 'Mayoría presencial (3-4 días) con algo de teletrabajo', 'Distribución equilibrada (50% presencial, 50% teletrabajo)', 'Mayoría teletrabajo (3-4 días) con algo de presencialidad', '100% teletrabajo']} />
+                        <LikertScale questionId="q11" question="11. El trabajo semi-presencial me permite conciliar mejor mi vida laboral y personal." />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('cohesion')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('liderazgo')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderLiderazgo = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle color="green">Liderazgo y supervisión</SectionTitle>
+                        <LikertScale questionId="q12" question="12. Mi responsable directo/a muestra confianza en mi trabajo independientemente de la modalidad." />
+                        <YesNo questionId="q13" question="13. ¿Ha recibido formación específica sobre el uso de herramientas para el teletrabajo?" />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('satisfaccion')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('recursos')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderRecursos = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle>Recursos y condiciones de trabajo</SectionTitle>
+                        <MultiSelect questionId="q14" question="14. ¿Qué recursos tecnológicos utiliza habitualmente para el teletrabajo?" options={['Ordenador proporcionado por Servicio Andaluz de Salud', 'Ordenador personal', 'Teléfono móvil corporativo', 'Software de videoconferencia (Teams, Zoom, etc.)', 'Acceso VPN a la red del centro', 'Plataformas de gestión de tareas', 'Otro']} />
+                        <LikertScale questionId="q15" question="15. Dispongo de los recursos tecnológicos necesarios para desarrollar mi trabajo en teletrabajo." />
+                        <NumericScale questionId="q16" question="16. En una escala del 0 al 10, ¿cómo valoraría la adecuación de su espacio de trabajo en casa?" labelLeft="Nada adecuado" labelRight="Muy adecuado" />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('liderazgo')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('bienestar')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderBienestar = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle color="green">Bienestar y carga de trabajo</SectionTitle>
+                        <MultipleChoice questionId="q17" question="17. Desde que ha tenido la posibilidad de desarrollar su trabajo en la modalidad de semi-presencial, su nivel de estrés laboral:" options={['Ha aumentado significativamente', 'Ha aumentado ligeramente', 'Se mantiene igual', 'Ha disminuido ligeramente', 'Ha disminuido significativamente']} />
+                        <YesNo questionId="q18" question="18. ¿Consigue desconectar del trabajo al finalizar su jornada laboral cuando teletrabaja?" />
+                        <OpenShort questionId="q19" question="19. ¿Cuántas horas adicionales (aproximadamente) trabaja a la semana desde que está en modalidad semi-presencial?" suffix="horas/semana" />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('recursos')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('demograficos')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderDemograficos = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle>Datos sociodemográficos</SectionTitle>
+                        <MultipleChoice questionId="q20" question="20. Provincia donde se ubica su centro de trabajo:" options={['Almería', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Málaga', 'Sevilla']} />
+                        <MultipleChoice questionId="q21" question="21. Tipo de centro donde trabaja:" options={['Hospital de especialidades / Hospital regional', 'Hospital comarcal', 'Centro de salud / Consultorio', 'Distrito sanitario / Área de gestión sanitaria', 'Servicios Centrales del SAS', 'Otro']} />
+                        <MultipleChoice questionId="q22" question="22. Género:" options={['Mujer', 'Hombre', 'Prefiero no decirlo']} />
+                        <MultipleChoice questionId="q23" question="23. Rango de edad:" options={['Menos de 30 años', '30-39 años', '40-49 años', '50-59 años', '60 años o más']} />
+                        <MultipleChoice questionId="q24" question="24. Antigüedad en su centro de trabajo actual:" options={['Menos de 1 año', '1-3 años', '4-10 años', 'Más de 10 años']} />
+                        <MultipleChoice questionId="q25" question="25. Tipo de contrato:" options={['Personal estatutario fijo', 'Personal estatutario interino', 'Contrato laboral indefinido', 'Contrato laboral temporal']} />
+                        <MultipleChoice questionId="q26" question="26. Porcentaje aproximado de su jornada que realiza en modalidad de teletrabajo:" options={['Menos del 20%', '20-40%', '40-60%', 'Más del 60%']} />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('bienestar')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('abiertas')} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Continuar →</button>
+                    </div>
+                </div>
+            );
+
+            const renderAbiertas = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                        <SectionTitle color="green">Preguntas abiertas</SectionTitle>
+                        <OpenQuestion questionId="q27" question="27. ¿Qué aspectos positivos destacaría del trabajo semi-presencial en su centro sanitario?" />
+                        <OpenQuestion questionId="q28" question="28. ¿Qué aspectos considera que podrían mejorarse en relación con el trabajo semi-presencial?" />
+                        <OpenQuestion questionId="q29" question="29. ¿Tiene alguna sugerencia o comentario adicional que desee compartir?" />
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setCurrentSection('demograficos')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                        <button onClick={() => setCurrentSection('end')} className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Finalizar encuesta ✓</button>
+                    </div>
+                </div>
+            );
+
+            const renderEnd = () => (
+                <div className="max-w-3xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                        {filterFailed ? (
+                            <>
+                                <div className="text-6xl mb-4">🙏</div>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-4">El cuestionario ha finalizado</h2>
+                                <p className="text-gray-600 text-lg">Gracias por su tiempo.</p>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-6xl mb-4">✅</div>
+                                <h2 className="text-2xl font-bold text-orange-600 mb-4">Ha finalizado el cuestionario</h2>
+                                <p className="text-gray-700 mb-4">
+                                    <strong>Muchas gracias por su tiempo y colaboración.</strong> Sus respuestas son de gran valor para esta investigación sobre el clima laboral en entornos semi-presenciales.
+                                </p>
+                                <p className="text-gray-600">
+                                    Los resultados de este estudio contribuirán a mejorar las condiciones de trabajo en modalidades híbridas y servirán como base para la toma de decisiones en materia de gestión de personas.
+                                </p>
+                            </>
+                        )}
+                        
+                        <button
+                            onClick={() => {
+                                setCurrentSection('intro');
+                                setResponses({});
+                                setFilterFailed(false);
+                            }}
+                            className="mt-8 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                        >
+                            Volver al inicio
+                        </button>
+                        
+                        <p className="mt-8 text-xs text-gray-400">Encuesta creada por Purificación María Vargas Prats (2025)</p>
+                    </div>
+                </div>
+            );
+
+            const progressSections = ['filter', 'comunicacion', 'cohesion', 'satisfaccion', 'liderazgo', 'recursos', 'bienestar', 'demograficos', 'abiertas'];
+            const currentIndex = progressSections.indexOf(currentSection);
+            const progress = currentSection === 'intro' ? 0 : currentSection === 'end' ? 100 : ((currentIndex + 1) / progressSections.length) * 100;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100 py-8 px-4">
+                    {currentSection !== 'intro' && currentSection !== 'end' && (
+                        <div className="max-w-3xl mx-auto mb-6">
+                            <div className="bg-white rounded-full h-3 shadow-inner">
+                                <div 
+                                    className="bg-gradient-to-r from-orange-400 to-orange-600 h-3 rounded-full transition-all duration-500"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                            <p className="text-center text-sm text-gray-500 mt-2">Progreso: {Math.round(progress)}%</p>
+                        </div>
+                    )}
+                    
+                    {currentSection === 'intro' && renderIntro()}
+                    {currentSection === 'filter' && renderFilter()}
+                    {currentSection === 'comunicacion' && renderComunicacion()}
+                    {currentSection === 'cohesion' && renderCohesion()}
+                    {currentSection === 'satisfaccion' && renderSatisfaccion()}
+                    {currentSection === 'liderazgo' && renderLiderazgo()}
+                    {currentSection === 'recursos' && renderRecursos()}
+                    {currentSection === 'bienestar' && renderBienestar()}
+                    {currentSection === 'demograficos' && renderDemograficos()}
+                    {currentSection === 'abiertas' && renderAbiertas()}
+                    {currentSection === 'end' && renderEnd()}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<EncuestaClimaLaboral />, document.getElementById('root'));
+    </script>
+</body>
+</html>
