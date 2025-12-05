@@ -17,36 +17,32 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useRef, useEffect } = React;
+        const { useState, useRef, useEffect, useCallback } = React;
 
-        // Componente OpenQuestion definido FUERA del componente principal
-        const OpenQuestion = React.memo(({ questionId, question, value, onChange }) => {
-            const textareaRef = useRef(null);
-            const [localValue, setLocalValue] = useState(value || '');
-            
-            const handleChange = (e) => {
-                setLocalValue(e.target.value);
-            };
-            
-            const handleBlur = () => {
-                onChange(questionId, localValue);
+        // Componente OpenQuestion con textarea NO controlado - sin re-renders
+        const OpenQuestion = ({ questionId, question, onSave }) => {
+            const saveValue = (e) => {
+                onSave(questionId, e.target.value);
             };
             
             return (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <p className="font-medium mb-3 text-gray-800">{question}</p>
                     <textarea
-                        ref={textareaRef}
-                        value={localValue}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
+                        id={questionId}
+                        defaultValue=""
+                        onBlur={saveValue}
                         placeholder="Escriba su respuesta aquí..."
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
                         rows={4}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
                     />
                 </div>
             );
-        });
+        };
 
         const EncuestaClimaLaboral = () => {
             const [currentSection, setCurrentSection] = useState('intro');
@@ -416,20 +412,33 @@
                 </div>
             );
 
-            const renderAbiertas = () => (
-                <div className="max-w-3xl mx-auto pb-64">
-                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-                        <SectionTitle color="green">Preguntas abiertas</SectionTitle>
-                        <OpenQuestion questionId="q27" question="27. ¿Qué aspectos positivos destacaría del trabajo semi-presencial en su centro sanitario?" value={responses['q27']} onChange={handleResponse} />
-                        <OpenQuestion questionId="q28" question="28. ¿Qué aspectos considera que podrían mejorarse en relación con el trabajo semi-presencial?" value={responses['q28']} onChange={handleResponse} />
-                        <OpenQuestion questionId="q29" question="29. ¿Tiene alguna sugerencia o comentario adicional que desee compartir?" value={responses['q29']} onChange={handleResponse} />
+            const renderAbiertas = () => {
+                const handleFinish = () => {
+                    // Guardar valores de textareas antes de finalizar
+                    const q27 = document.getElementById('q27');
+                    const q28 = document.getElementById('q28');
+                    const q29 = document.getElementById('q29');
+                    if (q27) handleResponse('q27', q27.value);
+                    if (q28) handleResponse('q28', q28.value);
+                    if (q29) handleResponse('q29', q29.value);
+                    setCurrentSection('end');
+                };
+                
+                return (
+                    <div className="max-w-3xl mx-auto pb-64">
+                        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                            <SectionTitle color="green">Preguntas abiertas</SectionTitle>
+                            <OpenQuestion questionId="q27" question="27. ¿Qué aspectos positivos destacaría del trabajo semi-presencial en su centro sanitario?" onSave={handleResponse} />
+                            <OpenQuestion questionId="q28" question="28. ¿Qué aspectos considera que podrían mejorarse en relación con el trabajo semi-presencial?" onSave={handleResponse} />
+                            <OpenQuestion questionId="q29" question="29. ¿Tiene alguna sugerencia o comentario adicional que desee compartir?" onSave={handleResponse} />
+                        </div>
+                        <div className="flex gap-4">
+                            <button onClick={() => setCurrentSection('demograficos')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
+                            <button onClick={handleFinish} className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Finalizar encuesta ✓</button>
+                        </div>
                     </div>
-                    <div className="flex gap-4">
-                        <button onClick={() => setCurrentSection('demograficos')} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-8 rounded-lg transition-colors">← Volver</button>
-                        <button onClick={() => setCurrentSection('end')} className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition-colors">Finalizar encuesta ✓</button>
-                    </div>
-                </div>
-            );
+                );
+            };
 
             const renderEnd = () => (
                 <div className="max-w-3xl mx-auto">
