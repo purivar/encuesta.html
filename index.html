@@ -286,35 +286,66 @@
             );
 
             const renderIntro = () => (
-                <div className="max-w-3xl mx-auto">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-orange-600 mb-2">Diseño de cuestionario</h1>
-                        <p className="text-gray-600">Métodos de investigación</p>
-                    </div>
+    <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-orange-600 mb-2">Diseño de cuestionario</h1>
+            <p className="text-gray-600">Métodos de investigación</p>
+        </div>
 
-                    <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-                        
-                        <p className="text-gray-700 leading-relaxed mb-6">
-                            El presente cuestionario está dirigido a <strong>todo el personal administrativo de los Centros Sanitarios Públicos de Andalucía</strong>, con el fin de conocer su percepción sobre las condiciones laborales en la modalidad híbrida de trabajo que combina la presencialidad con el teletrabajo. Los resultados obtenidos permitirán identificar áreas de mejora y desarrollar acciones orientadas a optimizar el clima laboral en estos entornos.
-                        </p>
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+            
+            <p className="text-gray-700 leading-relaxed mb-6">
+                El presente cuestionario está dirigido a <strong>todo el personal administrativo de los Centros Sanitarios Públicos de Andalucía</strong>, con el fin de conocer su percepción sobre las condiciones laborales en la modalidad híbrida de trabajo que combina la presencialidad con el teletrabajo. Los resultados obtenidos permitirán identificar áreas de mejora y desarrollar acciones orientadas a optimizar el clima laboral en estos entornos.
+            </p>
 
-                        <h2 className="text-base font-bold text-orange-600 mb-4">INFORMACIÓN E INSTRUCCIONES PARA CUMPLIMENTAR EL CUESTIONARIO</h2>
-                        <div className="space-y-3 text-gray-700">
-                            <p><strong>1. Confidencialidad y anonimato:</strong> Sus respuestas serán tratadas de forma totalmente anónima y confidencial.</p>
-                            <p><strong>2. Tiempo estimado:</strong> La cumplimentación del cuestionario le llevará aproximadamente 5-10 minutos.</p>
-                            <p><strong>3. Forma de respuesta:</strong> Por favor, lea atentamente cada pregunta y seleccione la opción que mejor refleje su opinión o situación.</p>
-                            <p><strong>4. Participación voluntaria:</strong> Su participación es totalmente voluntaria. Puede abandonar el cuestionario en cualquier momento.</p>
-                        </div>
-                    </div>
+            <h2 className="text-base font-bold text-orange-600 mb-4">INFORMACIÓN E INSTRUCCIONES PARA CUMPLIMENTAR EL CUESTIONARIO</h2>
+            
+            <div className="space-y-3 text-gray-700 mb-6">
+                <p><strong>1. Confidencialidad y anonimato:</strong> Sus respuestas serán tratadas de forma totalmente anónima y confidencial según LOPD 3/2018.</p>
+                <p><strong>2. Tiempo estimado:</strong> La cumplimentación del cuestionario le llevará aproximadamente 5-10 minutos.</p>
+                <p><strong>3. Forma de respuesta:</strong> Lea cada pregunta y seleccione la opción que mejor refleje su opinión.</p>
+                <p><strong>4. Participación voluntaria:</strong> Puede abandonar el cuestionario en cualquier momento.</p>
+            </div>
 
-                    <button
-                        onClick={() => setCurrentSection('filter')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg transition-colors text-lg"
-                    >
-                        Comenzar cuestionario →
-                    </button>
-                </div>
-            );
+            {/* Consentimiento informado */}
+            <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={responses.consent === true}
+                        onChange={() => handleResponse('consent', !responses.consent)}
+                        className="w-5 h-5 mt-1"
+                    />
+                    <span className="text-gray-700 text-sm">
+                        Acepto participar en esta encuesta.
+                    </span>
+                </label>
+
+                {!responses.consent && (
+                    <p className="text-red-500 text-xs mt-2">
+                        Debe aceptar el consentimiento informado para comenzar el cuestionario.
+                    </p>
+                )}
+            </div>
+        </div>
+
+        {/* Botón de inicio con bloqueo */}
+        <button
+            onClick={() => {
+                if (responses.consent) {
+                    setCurrentSection('filter');
+                }
+            }}
+            disabled={!responses.consent}
+            className={`w-full font-bold py-4 px-8 rounded-lg transition-colors text-lg 
+                ${responses.consent 
+                    ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+        >
+            Comenzar cuestionario →
+        </button>
+    </div>
+);
 
             const renderFilter = () => (
                 <div className="max-w-3xl mx-auto">
